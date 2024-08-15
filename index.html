@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>World Waterfalls Story Map</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <style>
+        body {
+            display: flex;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+            font-family: Arial, sans-serif;
+        }
+        #map {
+            width: 50%;
+            height: 100vh;
+            position: fixed;
+        }
+        #content {
+            width: 50%;
+            height: 100vh;
+            overflow-y: scroll;
+            margin-left: 50%;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .story-section {
+            margin-bottom: 40px;
+            padding: 20px;
+            background: white;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .story-section:hover {
+            background-color: #e0f7fa;
+        }
+        .story-section img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+        .story-section h2 {
+            margin-top: 0;
+        }
+        .story-section.active {
+            border-left: 5px solid #0077be;
+            background-color: #e0f7fa;
+        }
+        .title-section {
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 10px;
+            background: #0077be;
+            color: white;
+            font-size: 24px;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+
+<div id="map"></div>
+
+<div id="content">
+    <div id="story1" class="story-section">
+        <img src="Victorafalls.jpg" alt="Victoria Falls">
+        <h2>Victoria Falls</h2>
+        <p>Located on the Zambezi River at the border of Zambia and Zimbabwe, Victoria Falls is one of the largest and most famous waterfalls in the world.</p>
+    </div>
+
+    <div id="story2" class="story-section">
+        <img src="Niagra falls.jpg" alt="Niagara Falls">
+        <h2>Niagara Falls</h2>
+        <p>Niagara Falls, situated on the border of the USA and Canada, is renowned for its beauty and is a valuable source of hydroelectric power.</p>
+    </div>
+
+
+    <div id="story3" class="story-section">
+        <img src="Angel-Falls.jpg" alt="Angels Falls">
+        <h2>Angels Falls</h2>
+        <p>Angel Falls is a waterfall in Venezuela. It is the world's tallest uninterrupted waterfall, with a height of 979 metres, and a plunge of 807 m. The waterfall drops over the edge of the Auyán-tepui mountain in the Canaima National Park, a UNESCO World Heritage Site in the Gran Sabana region of Bolívar State.</p>
+    </div>
+
+    <div id="story3" class="story-section">
+        <img src="Iguazu falls.jpg" alt="Iguazu Falls">
+        <h2>Iguazu Falls</h2>
+        <p>Straddling the border between Argentina and Brazil, Iguazu Falls is one of the largest waterfall systems in the world, with 275 individual drops.</p>
+    </div>
+</div>
+
+<!-- Include Leaflet.js -->
+<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+<script>
+    // Initialize the map
+    var map = L.map('map', {
+        scrollWheelZoom: false
+    }).setView([0, 0], 2);
+
+    // Add OpenStreetMap tiles
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+
+    // Waterfall data
+    var waterfalls = [
+        {
+            name: "Victoria Falls",
+            location: [-17.9243, 25.8572],
+            description: "Located on the Zambezi River at the border of Zambia and Zimbabwe."
+        },
+        {
+            name: "Niagara Falls",
+            location: [43.0799, -79.0747],
+            description: "Situated on the border of the USA and Canada."
+        },
+        {
+            name: "Angels Falls",
+            location: [5.9676, -62.5356],
+            description: "Located in Venezuela, Angel Falls is the world's highest uninterrupted waterfall."
+        },
+        {
+            name: "Iguazu Falls",
+            location: [-25.6953, -54.4367],
+            description: "Straddling the border between Argentina and Brazil."
+        }
+    ];
+
+
+   // Add markers and store them for easy access
+   var markers = [];
+    waterfalls.forEach(function(waterfall, index) {
+        var marker = L.marker(waterfall.location).addTo(map)
+            .bindPopup(`<b>${waterfall.name}</b><br>${waterfall.description}`);
+        markers.push(marker);
+    });
+
+    // Scroll event listener for synchronizing map and narrative
+    document.getElementById('content').addEventListener('scroll', function() {
+        var sections = document.querySelectorAll('.story-section');
+        var scrollPosition = this.scrollTop + this.clientHeight / 2;
+
+        sections.forEach(function(section, index) {
+            var rect = section.getBoundingClientRect();
+            if (rect.top < scrollPosition && rect.bottom > scrollPosition) {
+                // Highlight the active section
+                document.querySelectorAll('.story-section').forEach(s => s.classList.remove('active'));
+                section.classList.add('active');
+
+                // Pan to the corresponding marker
+                map.panTo(waterfalls[index].location);
+                markers[index].openPopup();
+            }
+        });
+    });
+
+    // Click event listener to zoom to a waterfall's location when clicked
+    document.querySelectorAll('.story-section').forEach(function(section, index) {
+        section.addEventListener('click', function() {
+            // Highlight the active section
+            document.querySelectorAll('.story-section').forEach(s => s.classList.remove('active'));
+            section.classList.add('active');
+
+            // Zoom and pan to the corresponding marker
+            map.setView(waterfalls[index].location, 6);
+            markers[index].openPopup();
+        });
+    });
+
+    // Initial highlight of the first section and its corresponding marker
+    document.querySelector('.story-section').classList.add('active');
+    markers[0].openPopup();
+
+</script>
+</body>
+</html>
